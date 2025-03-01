@@ -1,3 +1,5 @@
 import mongoose from 'mongoose';
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/googlebooks');
+import dotenv from 'dotenv';
+dotenv.config();
+mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://Adebanjo:OmUiyVkwYG8zP5Fk@cluster05-13.p3mce.mongodb.net/?retryWrites=true&w=majority&appName=Cluster05-13');
 export default mongoose.connection;

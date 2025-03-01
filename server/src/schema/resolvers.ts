@@ -1,13 +1,15 @@
 import { AuthenticationError } from 'apollo-server-errors';
-import User from '../models/User'; 
-import { signToken } from '../services/auth';
+import User from '../models/User.js';
+import { signToken } from '../services/auth.js';
 
-// GraphQL resolvers implementation
 const resolvers = {
   Query: {
-    // Fetch a single user by id or username. If id is not provided,
-    // fallback to the id in the authenticated context.
-    getSingleUser: async (_parent: any, { id, username }: { id?: string; username?: string }, context: { user?: any }) => {
+    // Returns the currently authenticated user.
+    me: async (
+      _parent: any,
+      { id, username }: { id?: string; username?: string },
+      context: { user?: any }
+    ) => {
       const userId = id || (context.user && context.user._id);
       const foundUser = await User.findOne({
         $or: [{ _id: userId }, { username }],
@@ -19,8 +21,11 @@ const resolvers = {
     },
   },
   Mutation: {
-    // Create a new user, sign a JWT, and return both the token and user.
-    createUser: async (_parent: any, args: { username: string; email: string; password: string }) => {
+    // Renamed from "createUser" to "addUser" to match the schema.
+    addUser: async (
+      _parent: any,
+      args: { username: string; email: string; password: string }
+    ) => {
       const user = await User.create(args);
       if (!user) {
         throw new Error('Something went wrong while creating the user!');
@@ -28,8 +33,8 @@ const resolvers = {
       const token = signToken(user.username, user.password, user._id);
       return { token, user };
     },
-    // Log in an existing user by username or email and return a signed token.
-    login: async (
+    // Renamed from "login" to "loginUser" to match the schema.
+    loginUser: async (
       _parent: any,
       args: { username?: string; email?: string; password: string }
     ) => {
@@ -46,8 +51,12 @@ const resolvers = {
       const token = signToken(user.username, user.password, user._id);
       return { token, user };
     },
-    // Save a book to the authenticated user's savedBooks list.
-    saveBook: async (_parent: any, { book }: { book: any }, context: { user?: any }) => {
+    // saveBook matches the schema.
+    saveBook: async (
+      _parent: any,
+      { book }: { book: any },
+      context: { user?: any }
+    ) => {
       if (!context.user) {
         throw new AuthenticationError('You need to be logged in!');
       }
@@ -58,8 +67,12 @@ const resolvers = {
       );
       return updatedUser;
     },
-    // Remove a book from the authenticated user's savedBooks list.
-    deleteBook: async (_parent: any, { bookId }: { bookId: string }, context: { user?: any }) => {
+    // Renamed from "deleteBook" to "removeBook" to match the schema.
+    removeBook: async (
+      _parent: any,
+      { bookId }: { bookId: string },
+      context: { user?: any }
+    ) => {
       if (!context.user) {
         throw new AuthenticationError('You need to be logged in!');
       }

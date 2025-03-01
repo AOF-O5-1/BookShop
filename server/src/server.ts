@@ -4,9 +4,9 @@ import db from './config/connection.js';
 import routes from './routes/index.js';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
-import typeDefs from '../src/schema/typeDefs.js'; // Adjust the path as needed
-import resolvers from '../src/schema/resolvers.js'; // Adjust the path as needed
-import { apolloAuthContext } from './services/auth.js'; // Adjust the path as needed
+import typeDefs from './schema/typeDefs.js';
+import resolvers from './schema/resolvers.js';
+import { apolloAuthContext } from './services/auth.js'; 
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 3001;
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// If we're in production, serve client/build as static assets.
+
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../client/build')));
 }

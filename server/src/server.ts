@@ -44,13 +44,14 @@ app.use(routes);
 // In production, serve static files from the client/dist folder
 if (process.env.NODE_ENV === 'production') {
   const clientPath = path.join(__dirname, '../../../client/dist');
-  console.log('Serving static files from:', clientPath);
   app.use(express.static(clientPath));
-
-  // Catch-all: serve index.html for unmatched routes (but skip /graphql)
+  // Only catch requests that do not include a dot (.) in the URL,
+  // which indicates they are likely not requests for a file.
   app.get('*', (req, res) => {
-    if (!req.path.startsWith('/graphql')) {
+    if (!req.path.includes('.')) {
       res.sendFile(path.join(clientPath, 'index.html'));
+    } else {
+      res.status(404).send('Not found');
     }
   });
 }

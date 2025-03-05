@@ -1,4 +1,4 @@
-import type { Request, Response } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 const router = express.Router();
 
@@ -10,9 +10,13 @@ import apiRoutes from './api/index.js';
 
 router.use('/api', apiRoutes);
 
-// serve up react front-end in production
-router.use((_req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, '../../client/build/index.html'));
+// catch-all route for serving the React app in production,
+// but skip requests that are meant for /graphql
+router.use((req: Request, res: Response, next: NextFunction) => {
+  if (req.originalUrl.startsWith('/graphql')) {
+    return next(); // let the Apollo middleware handle /graphql requests
+  }
+  res.sendFile(path.join(__dirname, '../../../client/dist/index.html'));
 });
 
 export default router;

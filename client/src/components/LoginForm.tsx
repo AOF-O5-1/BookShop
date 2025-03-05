@@ -44,8 +44,8 @@ const LoginForm = ({}: { handleModalClose: () => void }) => {
         },
       });
 
-      if (data && data.login) {
-        Auth.login(data.login.token);
+      if (data && data.loginUser) {
+        Auth.login(data.loginUser.token);
       }
     } catch (err) {
       console.error(err);

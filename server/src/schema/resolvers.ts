@@ -10,14 +10,19 @@ const resolvers = {
       { id, username }: { id?: string; username?: string },
       context: { user?: any }
     ) => {
-      const userId = id || (context.user && context.user._id);
-      const foundUser = await User.findOne({
-        $or: [{ _id: userId }, { username }],
-      });
-      if (!foundUser) {
-        throw new Error('Cannot find a user with the provided id or username!');
+      try {
+        const userId = id || (context.user && context.user._id);
+        const foundUser = await User.findOne({
+          $or: [{ _id: userId }, { username }],
+        });
+        if (!foundUser) {
+          throw new Error('Cannot find a user with the provided id or username!');
+        }
+        return foundUser;
+      } catch (error) {
+        console.error('Error in Query.me:', error);
+        throw error;
       }
-      return foundUser;
     },
   },
   Mutation: {
@@ -26,30 +31,40 @@ const resolvers = {
       _parent: any,
       args: { username: string; email: string; password: string }
     ) => {
-      const user = await User.create(args);
-      if (!user) {
-        throw new Error('Something went wrong while creating the user!');
+      try {
+        const user = await User.create(args);
+        if (!user) {
+          throw new Error('Something went wrong while creating the user!');
+        }
+        const token = signToken(user.username, user.email, user._id);
+        return { token, user };
+      } catch (error) {
+        console.error('Error in Mutation.addUser:', error);
+        throw error;
       }
-      const token = signToken(user.username, user.password, user._id);
-      return { token, user };
     },
     // Renamed from "login" to "loginUser" to match the schema.
     loginUser: async (
       _parent: any,
       args: { username?: string; email?: string; password: string }
     ) => {
-      const user = await User.findOne({
-        $or: [{ username: args.username }, { email: args.email }],
-      });
-      if (!user) {
-        throw new Error("Can't find this user");
+      try {
+        const user = await User.findOne({
+          $or: [{ username: args.username }, { email: args.email }],
+        });
+        if (!user) {
+          throw new Error("Can't find this user");
+        }
+        const correctPw = await user.isCorrectPassword(args.password);
+        if (!correctPw) {
+          throw new Error('Wrong password!');
+        }
+        const token = signToken(user.username, user.email, user._id);
+        return { token, user };
+      } catch (error) {
+        console.error('Error in Mutation.loginUser:', error);
+        throw error;
       }
-      const correctPw = await user.isCorrectPassword(args.password);
-      if (!correctPw) {
-        throw new Error('Wrong password!');
-      }
-      const token = signToken(user.username, user.password, user._id);
-      return { token, user };
     },
     // saveBook matches the schema.
     saveBook: async (
@@ -57,15 +72,20 @@ const resolvers = {
       { book }: { book: any },
       context: { user?: any }
     ) => {
-      if (!context.user) {
-        throw new AuthenticationError('You need to be logged in!');
+      try {
+        if (!context.user) {
+          throw new AuthenticationError('You need to be logged in!');
+        }
+        const updatedUser = await User.findOneAndUpdate(
+          { _id: context.user._id },
+          { $addToSet: { savedBooks: book } },
+          { new: true, runValidators: true }
+        );
+        return updatedUser;
+      } catch (error) {
+        console.error('Error in Mutation.saveBook:', error);
+        throw error;
       }
-      const updatedUser = await User.findOneAndUpdate(
-        { _id: context.user._id },
-        { $addToSet: { savedBooks: book } },
-        { new: true, runValidators: true }
-      );
-      return updatedUser;
     },
     // Renamed from "deleteBook" to "removeBook" to match the schema.
     removeBook: async (
@@ -73,18 +93,23 @@ const resolvers = {
       { bookId }: { bookId: string },
       context: { user?: any }
     ) => {
-      if (!context.user) {
-        throw new AuthenticationError('You need to be logged in!');
+      try {
+        if (!context.user) {
+          throw new AuthenticationError('You need to be logged in!');
+        }
+        const updatedUser = await User.findOneAndUpdate(
+          { _id: context.user._id },
+          { $pull: { savedBooks: { bookId } } },
+          { new: true }
+        );
+        if (!updatedUser) {
+          throw new Error("Couldn't find a user with this id!");
+        }
+        return updatedUser;
+      } catch (error) {
+        console.error('Error in Mutation.removeBook:', error);
+        throw error;
       }
-      const updatedUser = await User.findOneAndUpdate(
-        { _id: context.user._id },
-        { $pull: { savedBooks: { bookId } } },
-        { new: true }
-      );
-      if (!updatedUser) {
-        throw new Error("Couldn't find a user with this id!");
-      }
-      return updatedUser;
     },
   },
 };

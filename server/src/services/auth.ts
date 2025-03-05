@@ -1,9 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { ExpressContextFunctionArgument } from '@apollo/server/express4';
 import jwt from 'jsonwebtoken';
-import { fileURLToPath } from 'url';
-import { dirname, join, resolve } from 'node:path';
-import dotenv from 'dotenv';
 
 
 // Log the current working directory to debug

@@ -43,7 +43,9 @@ app.use(routes);
 
 // In production, serve static files from the client/dist folder
 if (process.env.NODE_ENV === 'production') {
-  const clientPath = path.join(__dirname, '../../../client/dist');
+  const clientPath = process.env.NODE_ENV === 'production' 
+  ? path.join(process.cwd(), '../../client/dist')  // For Render's directory structure
+  : path.join(__dirname, '../../../client/dist');  // For local development
   
   // Configure proper MIME types before serving static files
   app.use((req, res, next) => {

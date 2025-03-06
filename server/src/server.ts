@@ -43,10 +43,27 @@ app.use(routes);
 
 // In production, serve static files from the client/dist folder
 if (process.env.NODE_ENV === 'production') {
-  const clientPath = process.env.NODE_ENV === 'production' 
-  ? path.join(process.cwd(), '../../client/dist')  // For Render's directory structure
-  : path.join(__dirname, '../../../client/dist');  // For local development
+  console.log('Current directory:', process.cwd());
+  const clientPath = path.join(process.cwd(), '../../client/dist');
+  console.log('Looking for client files at:', clientPath);
   
+  // Try to list files to verify path is correct
+  try {
+    const fs = require('fs');
+    console.log('Client directory exists:', fs.existsSync(clientPath));
+    if (fs.existsSync(clientPath)) {
+      console.log('Files in client directory:', fs.readdirSync(clientPath));
+      
+      const assetsPath = path.join(clientPath, 'assets');
+      if (fs.existsSync(assetsPath)) {
+        console.log('Files in assets directory:', fs.readdirSync(assetsPath));
+      } else {
+        console.log('Assets directory not found!');
+      }
+    }
+  } catch (err) {
+    console.error('Error checking directories:', err);
+  }
   // Configure proper MIME types before serving static files
   app.use((req, res, next) => {
     // Set correct MIME type for JavaScript modules

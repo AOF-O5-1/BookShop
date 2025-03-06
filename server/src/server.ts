@@ -43,31 +43,65 @@ app.use(routes);
 
 // In production, serve static files from the client/dist folder
 if (process.env.NODE_ENV === 'production') {
-
-  const clientPath = process.env.NODE_ENV === 'production'
-
-    ? path.join(process.cwd(), '../../client/dist')  // For Render's directory structure
-    : path.join(__dirname, '../../../client/dist');  // For local development
-
-  // Configure proper MIME types before serving static files
+  // Log current directory and attempt different paths
+  console.log('Current directory:', process.cwd());
+  
+  // Try multiple potential paths
+  const possiblePaths = [
+    path.join(__dirname, '../../../client/dist'),
+    path.join(process.cwd(), '../client/dist'),
+    path.join(process.cwd(), '../../client/dist'),
+    '/opt/render/project/src/client/dist'
+  ];
+  
+  let clientPath = null;
+  
+  // Find the first path that exists
+  for (const testPath of possiblePaths) {
+    try {
+      const fs = require('fs');
+      if (fs.existsSync(testPath)) {
+        console.log('Found valid client path:', testPath);
+        clientPath = testPath;
+        console.log('Files in directory:', fs.readdirSync(testPath));
+        break;
+      } else {
+        console.log('Path not found:', testPath);
+      }
+    } catch (err) {
+      console.error('Error checking path:', testPath, err);
+    }
+  }
+  
+  if (!clientPath) {
+    console.error('WARNING: Could not find client dist directory!');
+    clientPath = path.join(__dirname, '../../../client/dist'); // fallback
+  }
+  
+  // Set appropriate MIME types
   app.use((req, res, next) => {
-    // Set correct MIME type for JavaScript modules
+    console.log('Processing request for:', req.url);
     if (req.url.endsWith('.js')) {
+      console.log('Setting JavaScript MIME type for:', req.url);
       res.setHeader('Content-Type', 'application/javascript');
     } else if (req.url.endsWith('.css')) {
+      console.log('Setting CSS MIME type for:', req.url);
       res.setHeader('Content-Type', 'text/css');
     }
     next();
   });
-
+  
+  // Serve static files
+  console.log('Serving static files from:', clientPath);
   app.use(express.static(clientPath));
-
-  // Only catch requests that do not include a dot (.) in the URL,
-  // which indicates they are likely not requests for a file.
+  
+  // Handle other routes (SPA fallback)
   app.get('*', (req, res) => {
     if (!req.path.includes('.')) {
+      console.log('Serving index.html for:', req.path);
       res.sendFile(path.join(clientPath, 'index.html'));
     } else {
+      console.log('404 for file:', req.path);
       res.status(404).send('Not found');
     }
   });

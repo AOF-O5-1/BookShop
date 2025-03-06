@@ -5,10 +5,15 @@ import Navbar from './components/Navbar';
 import { ApolloClient, InMemoryCache, ApolloProvider, createHttpLink } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 
-// Create an HTTP link to your GraphQL endpoint.
+// Use a relative URL if in production
+const graphqlUri = import.meta.env.PROD
+  ? '/graphql'
+  : 'http://localhost:3001/graphql';
+
 const httpLink = createHttpLink({
-  uri: 'https://bookshop-e8ku.onrender.com',
+  uri: graphqlUri,
 });
+
 
 // Set up an auth link to attach the token to each request.
 const authLink = setContext((_, { headers }) => {

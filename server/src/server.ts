@@ -29,7 +29,7 @@ app.use((req, _res, next) => {
 // Enable CORS for requests from http://localhost:3000
 app.use(
   cors({
-    origin: 'https://bookshop-e8ku.onrender.com',
+    origin: 'http://localhost:3000',
    
     credentials: true,
   })

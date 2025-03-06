@@ -43,12 +43,12 @@ app.use(routes);
 
 // In production, serve static files from the client/dist folder
 if (process.env.NODE_ENV === 'production') {
-  
-  const clientPath = process.env.NODE_ENV === 'production' 
- 
-  ? path.join(process.cwd(), '../../client/dist')  // For Render's directory structure
-  : path.join(__dirname, '../../../client/dist');  // For local development
-  
+
+  const clientPath = process.env.NODE_ENV === 'production'
+
+    ? path.join(process.cwd(), '../../client/dist')  // For Render's directory structure
+    : path.join(__dirname, '../../../client/dist');  // For local development
+
   // Configure proper MIME types before serving static files
   app.use((req, res, next) => {
     // Set correct MIME type for JavaScript modules
@@ -59,9 +59,9 @@ if (process.env.NODE_ENV === 'production') {
     }
     next();
   });
-  
+
   app.use(express.static(clientPath));
-  
+
   // Only catch requests that do not include a dot (.) in the URL,
   // which indicates they are likely not requests for a file.
   app.get('*', (req, res) => {
